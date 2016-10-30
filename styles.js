@@ -1,4 +1,3 @@
-const NAV_BAR_HEIGHT = 44;
 const STATUS_BAR_HEIGHT = 20;
 
 module.exports = {
@@ -9,7 +8,6 @@ module.exports = {
     height: STATUS_BAR_HEIGHT,
   },
   navBar: {
-    height: NAV_BAR_HEIGHT,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'stretch',

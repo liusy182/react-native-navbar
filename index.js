@@ -4,11 +4,14 @@ import {
   StatusBar,
   Text,
   View,
+  Animated,
   Platform
 } from 'react-native';
 
 import NavbarButton from './NavbarButton';
 import styles from './styles';
+
+const NAV_BAR_HEIGHT = 44;
 
 const ButtonShape = {
   title: PropTypes.string.isRequired,
@@ -50,12 +53,52 @@ function customizeStatusBar(data) {
 }
 
 class NavigationBar extends Component {
+  componentWillMount() {
+    if(this.props.navBarHidden) {
+      this.setState({
+        height: new Animated.Value(0),
+        translateY: new Animated.Value(-NAV_BAR_HEIGHT)
+      });
+    } else {
+      this.setState({
+        height: new Animated.Value(NAV_BAR_HEIGHT),
+        translateY: new Animated.Value(0)
+      });
+    }
+  }
+
   componentDidMount() {
     customizeStatusBar(this.props.statusBar);
   }
 
   componentWillReceiveProps(props) {
     customizeStatusBar(props.statusBar);
+
+    const prevProps = this.props;
+    if(prevProps.navBarHidden && !props.navBarHidden) {
+      Animated.parallel([
+        Animated.timing(this.state.height, {
+          toValue: NAV_BAR_HEIGHT,  
+          duration: 100,
+        }),
+        Animated.timing(this.state.translateY, {
+          toValue: 0,  
+          duration: 100,
+        })
+      ]).start();
+      
+    } else if(!prevProps.navBarHidden && props.navBarHidden) {
+      Animated.parallel([
+        Animated.timing(this.state.height, {
+          toValue: 0,  
+          duration: 100,
+        }),
+        Animated.timing(this.state.translateY, {
+          toValue: -NAV_BAR_HEIGHT,  
+          duration: 100,
+        })
+      ]).start();
+    }
   }
 
   getButtonElement(data = {}, style) {
@@ -107,11 +150,19 @@ class NavigationBar extends Component {
     return (
       <View style={[styles.navBarContainer, customTintColor, ]}>
         {statusBar}
-        <View style={[styles.navBar, this.props.style, ]}>
+        <Animated.View style={[
+            styles.navBar, 
+            this.props.style, 
+            { 
+              height: this.state.height,
+              transform: [{ translateY: this.state.translateY }] 
+            }
+          ]}
+        >
           {this.getTitleElement(this.props.title)}
           {this.getButtonElement(this.props.leftButton, { marginLeft: 8, })}
           {this.getButtonElement(this.props.rightButton, { marginRight: 8, })}
-        </View>
+        </Animated.View>
       </View>
     );
   }
@@ -144,6 +195,7 @@ class NavigationBar extends Component {
     title: {
       title: '',
     },
+    navBarHidden: false
   };
 }
 module.exports = NavigationBar;
